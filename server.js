@@ -6,6 +6,8 @@ const PORT = process.env.PORT || 8080;
 const db = require("./app/models");
 const Role = db.role;
 
+global.__basedir = __dirname;
+
 var corsOptions = {
     origin: "http://localhost:8080"
 };
@@ -21,6 +23,7 @@ app.get("/", (req,res) => {
 //routes
 require('./app/routes/auth.routes')(app);
 require('./app/routes/user.routes')(app);
+require('./app/routes/avatar.routes')(app);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
