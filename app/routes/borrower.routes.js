@@ -17,6 +17,10 @@ module.exports = (app) => {
 
     router.get("/", borrowers.findAll);
 
+    router.get("/queryShow", borrowers.queryBorrowerShow);
+
+    router.get("/queryNotReturned", borrowers.queryBorrowerNotReturned);
+
     router.get("/:cardNumber", borrowers.findOne);
 
     router.put("/:cardNumber", [authJwt.verifyToken], borrowers.update);

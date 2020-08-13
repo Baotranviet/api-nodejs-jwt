@@ -31,7 +31,7 @@ exports.create = async (req,res) => {
 };
 
 exports.findAll = (req,res) => {
-    Borrow.findAll({ include: ["borrowers, books"] })
+    Borrow.findAll()
         .then((data) => {
             res.send(data);
         }).catch((err) => {
@@ -44,7 +44,7 @@ exports.findAll = (req,res) => {
 exports.findOne = (req,res) => {
     const id = req.params.id;
 
-    Borrow.findByPk(id, { include: ["borrowers, books"] })
+    Borrow.findByPk(id)
         .then((data) => {
             if (data == null) {
                 res.send("Not found");
