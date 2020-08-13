@@ -1,27 +1,25 @@
 const db = require("../models");
-const Book = db.book;
+const Borrow = db.borrow;
 
 exports.create = async (req,res) => {
-    if (!req.body.bookCode ||
-        !req.body.bookName ||
-        !req.body.pageNumber ||
-        !req.body.quantity ||
-        !req.body.authorId) {
+    if (!req.body.borrowDate ||
+        !req.body.payDate ||
+        !req.body.bookCode ||
+        !req.body.cardNumber) {
         res.status(400).send({
             message: "Value is required"
         });
         return ;
     }
 
-    const book = {
+    const borrow = {
+        borrowDate: req.body.borrowDate,
+        payDate: req.body.payDate,
         bookCode: req.body.bookCode,
-        bookName: req.body.bookName,
-        pageNumber: req.body.pageNumber,
-        quantity: req.body.quantity,
-        authorId: req.body.authorId
+        cardNumber: req.body.cardNumber
     };
 
-    Book.create(book)
+    Borrow.create(borrow)
         .then(data => {
             res.send(data);
         })
@@ -33,7 +31,7 @@ exports.create = async (req,res) => {
 };
 
 exports.findAll = (req,res) => {
-    Book.findAll()
+    Borrow.findAll({ include: ["borrowers, books"] })
         .then((data) => {
             res.send(data);
         }).catch((err) => {
@@ -44,10 +42,9 @@ exports.findAll = (req,res) => {
 };
 
 exports.findOne = (req,res) => {
-    var bookCode = req.params.bookCode;
-    bookCode = bookCode.toString();
-    
-    Book.findByPk(bookCode, { include: ["authors"]})
+    const id = req.params.id;
+
+    Borrow.findByPk(id, { include: ["borrowers, books"] })
         .then((data) => {
             if (data == null) {
                 res.send("Not found");
@@ -61,20 +58,19 @@ exports.findOne = (req,res) => {
 };
 
 exports.update = (req,res) => {
-    var bookCode = req.params.bookCode;
-    bookCode = bookCode.toString();
+    const id = req.params.id;
 
-    Book.update(req.body, {
-        where: { bookCode: bookCode }
+    Borrow.update(req.body, {
+        where: { id: id }
     })
         .then((num) => {
             if (num == 1) {
                 res.send({
-                    message: "Book updated successfully"
+                    message: "Borrow updated successfully"
                 });
             } else {
                 res.send({
-                    message: `Cannot update Book with bookCode=${bookCode}`
+                    message: `Cannot update Borrow with id=${id}`
                 });
             }
         }).catch((err) => {
@@ -85,20 +81,19 @@ exports.update = (req,res) => {
 };
 
 exports.delete = (req,res) => {
-    var bookCode = req.params.bookCode;
-    bookCode = bookCode.toString();
+    const id = req.params.id;
 
-    Book.destroy({
-        where: { bookCode: bookCode }
+    Borrow.destroy({
+        where: { id: id }
     })
         .then((num) => {
             if (num == 1) {
                 res.send({
-                    message: "Book deleted successfully"
+                    message: "Borrow deleted successfully"
                 });
             } else {
                 res.send({
-                    message: `Cannot delete Book with bookCode=${bookCode}`
+                    message: `Cannot delete Borrow with id=${id}`
                 });
             }
         }).catch((err) => {
@@ -109,13 +104,13 @@ exports.delete = (req,res) => {
 }
 
 exports.deleteAll = (req,res) => {
-    Book.destroy({
+    Borrow.destroy({
         where: {},
         truncate: false
     })
         .then((nums) => {
             res.send({
-                message: `${nums} Book deleted successfully`
+                message: `${nums} Borrow deleted successfully`
             });
         }).catch((err) => {
             res.status(500).send({

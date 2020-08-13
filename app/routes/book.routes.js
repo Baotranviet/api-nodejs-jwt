@@ -17,11 +17,11 @@ module.exports = (app) => {
 
     router.get("/", books.findAll);
 
-    router.get("/:id", books.findOne);
+    router.get("/:bookCode", books.findOne);
 
-    router.put("/:id", [authJwt.verifyToken], books.update);
+    router.put("/:bookCode", [authJwt.verifyToken], books.update);
 
-    router.delete("/:id", [authJwt.verifyToken], books.delete);
+    router.delete("/:bookCode", [authJwt.verifyToken], books.delete);
 
     router.delete("/", books.deleteAll);
 
