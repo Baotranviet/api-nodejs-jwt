@@ -29,6 +29,8 @@ db.role = require("../models/role.model.js")(sequelize,Sequelize);
 db.avatar = require("../models/avatar.model.js")(sequelize,Sequelize);
 db.author = require("../models/author.model.js")(sequelize,Sequelize);
 db.book = require("../models/book.model.js")(sequelize,Sequelize);
+db.borrower = require("../models/borrower.model.js")(sequelize,Sequelize);
+db.borrow = require("../models/borrow.model.js")(sequelize,Sequelize);
 
 db.role.belongsToMany(db.user, {
     through: "user_roles",
@@ -53,6 +55,26 @@ db.author.hasMany(db.book, {
 db.book.belongsTo(db.author, {
     foreignKey: "authorId",
     as: "authors"
+});
+db.book.hasMany(db.borrow, {
+    foreignKey: "bookCode",
+    otherKey: "bookCode",
+    as: "borrows"
+});
+db.borrower.hasMany(db.borrow, {
+    foreignKey: "cardNumber",
+    otherKey: "cardNumber",
+    as: "borrows"
+}); 
+db.borrow.belongsTo(db.book, {
+    foreignKey: "bookCode",
+    otherKey: "bookCode",
+    as: "books"
+});
+db.borrow.belongsTo(db.borrower, {
+    foreignKey: "cardNumber",
+    otherKey: "cardNumber",
+    as: "borrowers"
 });
 
 db.ROLES = ["user", "admin", "moderator"];
