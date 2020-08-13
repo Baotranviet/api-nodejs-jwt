@@ -1,5 +1,6 @@
 const db = require("../models");
 const Borrower = db.borrower;
+const ShowAllBorrower = db.showAllBorrower;
 
 exports.create = async (req,res) => {
     if (!req.body.cardNumber ||
@@ -30,13 +31,13 @@ exports.create = async (req,res) => {
         });  
 };
 
-exports.findAll = (req,res) => {
-    Borrower.findAll({ include: ["borrows"] })
+exports.findAll = async (req,res) => {
+    Borrower.findAll()
         .then((data) => {
             res.send(data);
         }).catch((err) => {
             res.status(500).send({
-                message : err.message
+                message: err.message
             });
         });
 };
@@ -121,3 +122,22 @@ exports.deleteAll = (req,res) => {
             })
         });
 }
+
+
+exports.queryBorrowerShow = async (req,res) => {
+
+    borrowers = await db.sequelize.query('SELECT borrowers.name, COUNT(borrows.cardNumber) as number_of_borrow FROM borrowers LEFT JOIN borrows ON borrowers.cardNumber = borrows.cardNumber GROUP BY borrowers.name', { type: db.sequelize.QueryTypes.SELECT });
+    if (!borrowers) {
+        return res.send({ message: "Not found" })
+    }
+    res.status(200).json({ borrowers: borrowers });
+};
+
+exports.queryBorrowerNotReturned = async (req,res) => {
+
+    borrowers = await db.sequelize.query('SELECT borrowers.name FROM borrowers INNER JOIN borrows ON borrowers.cardNumber = borrows.cardNumber WHERE borrows.payDate IS NULL', { type: db.sequelize.QueryTypes.SELECT });
+    if (!borrowers) {
+        return res.send({ message: "Not found" })
+    }
+    res.status(200).json({ borrowers: borrowers });
+};
