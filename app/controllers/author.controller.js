@@ -1,42 +1,43 @@
 const db = require("../models");
 const Author = db.author;
 
-exports.create = (req,res) => {
-    if (!req.body.name) {
-        res.status(400).send({
-            message: "Name is required"
-        });
-        return ;
+let {authorValidator} = require("../validators/author.validator");
+
+exports.create = async (req,res) => {
+    try {
+        let validator = await authorValidator(req);
+        if (validator !== null) {
+            return res.send({ message: validator });
+        } 
+        const author = { name: req.body.name };
+        
+        Author.create(author)
+            .then(data => {
+                res.send(data);
+            })
+            .catch(err => {
+                    res.status(500).send({
+                        message: err.message
+                    });
+                });
+    } catch (error) {
+        return res.status(500).send({error: error}); 
     }
-
-    const author = {
-        name: req.body.name
-    };
-
-    Author.create(author)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message
-            });
-        });
 };
-
+    
 exports.findAll = (req,res) => {
     Author.findAll({ include: "books" })
-        .then((data) => {
-            res.send(data);
-        }).catch((err) => {
-            res.status(500).send({
-                message : err.message
-            });
+    .then((data) => {
+        res.send(data);
+    }).catch((err) => {
+        res.status(500).send({
+            message : err.message
         });
+    });
 };
-
+    
 exports.findOne = (req,res) => {
-    const id = req.params.id;
+    var id = req.params.id;
 
     Author.findByPk(id, { include: "books" })
         .then((data) => {
@@ -48,31 +49,40 @@ exports.findOne = (req,res) => {
         });
 };
 
-exports.update = (req,res) => {
-    const id = req.params.id;
+exports.update = async (req,res) => {
+    try {
+        let validator = await authorValidator(req);
+        if (validator !== null) {
+            return res.send({ message: validator });
+        } 
 
-    Author.update(req.body, {
-        where: { id: id }
-    })
-        .then((num) => {
-            if (num == 1) {
-                res.send({
-                    message: "Author was updated successfully"
+        const id = req.params.id;
+
+        Author.update(req.body, {
+            where: { id: id }
+        })
+            .then((num) => {
+                if (num == 1) {
+                    res.send({
+                        message: "Author was updated successfully"
+                    });
+                } else {
+                    res.send({
+                        message: `Cannot update Author with id=${id}. Maybe Author was not found or req.body is empty!`
+                    });
+                }
+            }).catch((err) => {
+                res.status(500).send({
+                    message: err.message
                 });
-            } else {
-                res.send({
-                    message: `Cannot update Author with id=${id}. Maybe Author was not found or req.body is empty!`
-                });
-            }
-        }).catch((err) => {
-            res.status(500).send({
-                message: err.message
             });
-        });
+    } catch (error) {
+        return res.status(500).send({error: error}); 
+    }
 };
 
 exports.delete = (req,res) => {
-    const id = req.params.id;
+    var id = req.params.id;
 
     Author.destroy({
         where: { id: id }

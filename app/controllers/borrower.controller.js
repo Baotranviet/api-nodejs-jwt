@@ -1,34 +1,46 @@
 const db = require("../models");
 const Borrower = db.borrower;
-const ShowAllBorrower = db.showAllBorrower;
+
+let {borrowerValidator} = require('../validators/borrower.validator');
 
 exports.create = async (req,res) => {
-    if (!req.body.cardNumber ||
-        !req.body.dayOfBirth ||
-        !req.body.name ||
-        !req.body.class) {
-        res.status(400).send({
-            message: "Value is required"
-        });
-        return ;
-    }
+    try {
+        let validator = await borrowerValidator(req);
+        if (validator !== null) {
+            return res.send({message: validator});
+        }
 
-    const borrower = {
-        cardNumber: req.body.cardNumber,
-        dayOfBirth: req.body.dayOfBirth,
-        name: req.body.name,
-        class: req.body.class
-    };
-
-    Borrower.create(borrower)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message
+        if (!req.body.cardNumber ||
+            !req.body.dayOfBirth ||
+            !req.body.name ||
+            !req.body.class) {
+            res.status(400).send({
+                message: "Value is required"
             });
-        });  
+            return ;
+        }
+
+        var borrower = {
+            cardNumber: req.body.cardNumber,
+            dayOfBirth: req.body.dayOfBirth,
+            name: req.body.name,
+            class: req.body.class
+        };
+
+        Borrower.create(borrower)
+            .then(data => {
+                res.send(data);
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message: err.message
+                });
+            });
+    } catch (error) {
+        res.status(500).send({
+            error: error.message
+        }); 
+    }  
 };
 
 exports.findAll = async (req,res) => {
@@ -59,28 +71,38 @@ exports.findOne = (req,res) => {
         });
 };
 
-exports.update = (req,res) => {
-    var cardNumber = req.params.cardNumber;
-    cardNumber = cardNumber.toString();
+exports.update = async (req,res) => {
+    try {
+        let validator = await borrowerValidator(req);
+        if (validator !== null) {
+            return res.send({message: validator});
+        }
+        var cardNumber = req.params.cardNumber;
+        cardNumber = cardNumber.toString();
 
-    Borrower.update(req.body, {
-        where: { cardNumber: cardNumber }
-    })
-        .then((num) => {
-            if (num == 1) {
-                res.send({
-                    message: "Borrower updated successfully"
+        Borrower.update(req.body, {
+            where: { cardNumber: cardNumber }
+        })
+            .then((num) => {
+                if (num == 1) {
+                    res.send({
+                        message: "Borrower updated successfully"
+                    });
+                } else {
+                    res.send({
+                        message: `Cannot update Borrower with cardNumber=${cardNumber}`
+                    });
+                }
+            }).catch((err) => {
+                res.status(500).send({
+                    message: err.message
                 });
-            } else {
-                res.send({
-                    message: `Cannot update Borrower with cardNumber=${cardNumber}`
-                });
-            }
-        }).catch((err) => {
-            res.status(500).send({
-                message: err.message
             });
-        });
+    } catch (error) {
+        res.status(500).send({
+            error: error.message
+        }); 
+    }  
 };
 
 exports.delete = (req,res) => {
