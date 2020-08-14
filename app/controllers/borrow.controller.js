@@ -1,33 +1,36 @@
 const db = require("../models");
 const Borrow = db.borrow;
 
+let {borrowValidator} = require("../validators/borrow.validator");
+
 exports.create = async (req,res) => {
-    if (!req.body.borrowDate ||
-        !req.body.payDate ||
-        !req.body.bookCode ||
-        !req.body.cardNumber) {
-        res.status(400).send({
-            message: "Value is required"
-        });
-        return ;
-    }
-
-    const borrow = {
-        borrowDate: req.body.borrowDate,
-        payDate: req.body.payDate,
-        bookCode: req.body.bookCode,
-        cardNumber: req.body.cardNumber
-    };
-
-    Borrow.create(borrow)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message
+    try {
+        let validator = await borrowValidator(req);
+        if (validator !== null) {
+            return res.send({message: validator});
+        }
+    
+        var borrow = {
+            borrowDate: req.body.borrowDate,
+            payDate: req.body.payDate,
+            bookCode: req.body.bookCode,
+            cardNumber: req.body.cardNumber
+        };
+    
+        Borrow.create(borrow)
+            .then(data => {
+                res.send(data);
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message: err.message
+                });
             });
-        });  
+    } catch (error) {
+        res.status(500).send({
+            error: error.message
+        });
+    }
 };
 
 exports.findAll = (req,res) => {
@@ -42,7 +45,7 @@ exports.findAll = (req,res) => {
 };
 
 exports.findOne = (req,res) => {
-    const id = req.params.id;
+    var id = req.params.id;
 
     Borrow.findByPk(id)
         .then((data) => {
@@ -57,31 +60,41 @@ exports.findOne = (req,res) => {
         });
 };
 
-exports.update = (req,res) => {
-    const id = req.params.id;
+exports.update = async (req,res) => {
+    try {
+        let validator = await borrowValidator(req);
+        if (validator !== null) {
+            return res.send({message: validator});
+        }
+        var id = req.params.id;
 
-    Borrow.update(req.body, {
-        where: { id: id }
-    })
-        .then((num) => {
-            if (num == 1) {
-                res.send({
-                    message: "Borrow updated successfully"
+        Borrow.update(req.body, {
+            where: { id: id }
+        })
+            .then((num) => {
+                if (num == 1) {
+                    res.send({
+                        message: "Borrow updated successfully"
+                    });
+                } else {
+                    res.send({
+                        message: `Cannot update Borrow with id=${id}`
+                    });
+                }
+            }).catch((err) => {
+                res.status(500).send({
+                    message: err.message
                 });
-            } else {
-                res.send({
-                    message: `Cannot update Borrow with id=${id}`
-                });
-            }
-        }).catch((err) => {
-            res.status(500).send({
-                message: err.message
             });
+    } catch (error) {
+        res.status(500).send({
+            error: error.message
         });
+    }
 };
 
 exports.delete = (req,res) => {
-    const id = req.params.id;
+    var id = req.params.id;
 
     Borrow.destroy({
         where: { id: id }
